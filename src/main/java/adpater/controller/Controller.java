@@ -97,9 +97,12 @@ public class Controller {
         boolean isDone = false;
         boolean isAgentDone = false;
         int pauseCount = 1;
+        long totalTime = 0;
+
         this.learningPoolServer.startLearningPool();
 //        while(!isDone && !this.learningPoolServer.getAgentDone()){
         while(!isDone){
+            long start = System.nanoTime();
             if (this.learningPoolServer.isLearningResultDTOQueueEmpty()) {
                 if (this.learningPoolServer.getPauseAgent()) {
                     this.learningPoolServer.setPauseAgent(false);
@@ -121,9 +124,26 @@ public class Controller {
                         inputPageUrls.add(task.getTargetURL());
                         learningPoolServer.enQueueLearningTaskDTO(LearningTaskDTOMapper.mappingLearningTaskDTOFrom(task));
                         directiveTreeHelper.addInputPage(task);
+
                     }
                 }
-                LogHelper.writeAllLog();
+
+                long end = System.nanoTime();
+                long duration = end - start;
+                start = end;
+                totalTime += duration;
+                double seconds = totalTime / 1_000_000_000.0;
+
+                LOGGER.info(String.format("The execution time is: %.3f seconds", seconds));
+
+                final Map<String, CodeCoverage> totalCoverage = serverInstance.getTotalCoverage();
+                final CodeCoverage statementCoverage = totalCoverage.get("statement");
+                final CodeCoverage branchCoverage = totalCoverage.get("branch");
+
+                LOGGER.info("The statement coverage is: " + statementCoverage.getCoveredAmount() + String.format("(%.2f%%)", 100 * statementCoverage.getPercent()));
+                LOGGER.info("The branch coverage is: " + branchCoverage.getCoveredAmount() + String.format("(%.2f%%)", 100 * branchCoverage.getPercent()));
+
+                LOGGER.info("Total task is: " + taskCompleteMap.size() + " , Remain task is: " + learningPool.getTaskSize());
             }
             isDone = checkCrawlingDone();
             if(!isDone){
@@ -140,9 +160,14 @@ public class Controller {
             directiveTreeHelper.writeDirectiveTree();
             directiveTreeHelper.drawDirectiveTree();
 
+            long end = System.nanoTime();
+            long duration = end - start;
+            totalTime += duration;
+            double seconds = totalTime / 1_000_000_000.0;
+            LogHelper.summary(String.format("The execution time is: %.3f seconds", seconds));
+
             CodeCoverage statementCoverage = serverInstance.getTotalCoverage().get("statement");
             CodeCoverage branchCoverage = serverInstance.getTotalCoverage().get("branch");
-
             LogHelper.summary("The statement coverage is: " + statementCoverage.getCoveredAmount() + String.format("(%.2f%%)", 100 * statementCoverage.getPercent()));
             LogHelper.summary("The branch coverage is: " + branchCoverage.getCoveredAmount() + String.format("(%.2f%%)", 100 * branchCoverage.getPercent()));
 

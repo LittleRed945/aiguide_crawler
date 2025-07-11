@@ -49,6 +49,7 @@ public class Crawljax implements Crawler {
         CrawljaxRunner crawljaxRunner = createCrawljaxRunner(config, aiGuidePlugin);
         crawljaxRunner.call();
         List<LearningTarget> learningTargets = aiGuidePlugin.getLearningTarget();
+        serverInstanceManagement.recordCoverage();
 //        mergingGraph(aiGuidePlugin.getStateFlowGraph());
         return convertToLearningTask(learningTargets);
     }
