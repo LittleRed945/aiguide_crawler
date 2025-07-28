@@ -88,6 +88,8 @@ public class Controller {
                 return new SvelteCommerceServer(this.config.AUT_NAME, this.config.AUT_PORT);
             case "oscar":
                 return new OscarServer(this.config.AUT_NAME, this.config.AUT_PORT);
+            case "mern_forum":
+                return new MernForumAppServer(this.config.AUT_NAME, this.config.AUT_PORT);
         }
 
         throw new RuntimeException("AUT not fount when create server instance.");
@@ -114,7 +116,21 @@ public class Controller {
             while(!directiveTreeHelper.isTreeComplete()){
                 serverInstance.restartServerInstance();
                 List<CrawlerDirective> crawlerDirectives = directiveTreeHelper.takeFirstUnprocessedCrawlerDirectives();
-
+                LOGGER.debug("The task Directive:");
+                for (CrawlerDirective crawlerDirective: crawlerDirectives){
+                    List<HighLevelAction> highLevelActions = crawlerDirective.getHighLevelActions();
+                    LOGGER.debug("The highLevelAction:");
+                    for (HighLevelAction highLevelAction: highLevelActions){
+                        List<Action> actionSequence = highLevelAction.getActionSequence();
+                        LOGGER.debug("The action is");
+                        LOGGER.debug("=================================================================");
+                        for(Action action: actionSequence){
+                            LOGGER.debug(action.toString());
+                        }
+                        LOGGER.debug("=================================================================");
+                    }
+                    LOGGER.debug("and the dirctive dom is: {}", crawlerDirective.getDom());
+                }
                 List<LearningTask> learningTaskList = crawler.crawlingWithDirectives(config, crawlerDirectives);
                 for(LearningTask task: learningTaskList){
                     LOGGER.debug("The task is {}", task);
