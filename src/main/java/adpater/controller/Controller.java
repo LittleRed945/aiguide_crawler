@@ -101,9 +101,14 @@ public class Controller {
         int pauseCount = 1;
         long totalTime = 0;
 
+//        for KeystoneJS
+        int current_run = 0;
+        int MAX_RUN = 6;
+
         this.learningPoolServer.startLearningPool();
 //        while(!isDone && !this.learningPoolServer.getAgentDone()){
         while(!isDone){
+
             long start = System.nanoTime();
             if (this.learningPoolServer.isLearningResultDTOQueueEmpty()) {
                 if (this.learningPoolServer.getPauseAgent()) {
@@ -114,6 +119,14 @@ public class Controller {
                 }
             }
             while(!directiveTreeHelper.isTreeComplete()){
+                current_run += 1;
+                if (current_run > MAX_RUN){
+                    LOGGER.debug("The Keystone RUN is exceed the Max run limit, stop the crawler");
+                    isDone = true;
+                    break;
+                }else{
+                    LOGGER.debug("The app is {}, and the current run is {}", this.config.AUT_NAME, current_run);
+                }
                 serverInstance.restartServerInstance();
                 List<CrawlerDirective> crawlerDirectives = directiveTreeHelper.takeFirstUnprocessedCrawlerDirectives();
                 LOGGER.debug("The task Directive:");
